@@ -1,0 +1,77 @@
+services:
+  memcached:
+    image: memcached:1.6.12-alpine
+    env_file:
+      - .env.development
+
+  redis:
+    image: redis:6.2.6-alpine
+    volumes:
+      - v_development_redis:/data
+    command: ['redis-server', '--save', '60', '1']
+
+  postgres:
+    image: postgres:13.5-alpine
+    env_file:
+      - ./.env.development
+    volumes:
+      - v_development_postgres:/var/lib/postgresql/data
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - redis
+      - postgres
+    env_file:
+      - ./.env.development
+    environment:
+      RAILS_ENV: development
+      NODE_ENV: development
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/m3p_worker
+      - v_development_gems:/usr/local/bundle
+      - v_development_storage:/m3p_worker/storage
+      - v_development_tmp:/m3p_worker/tmp
+    command: ['dotenv', '-f', '.env.development',
+              'bundle', 'exec', 'sidekiq']
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - memcached
+      - postgres
+      - worker
+    env_file:
+      - ./.env.development
+    environment:
+      RAILS_ENV: development
+      NODE_ENV: development
+      WORKER_BROWSER_POOL_LOAD: load
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/m3p_web
+      - v_development_gems:/usr/local/bundle
+      - v_development_storage:/m3p_web/storage
+      - v_development_tmp:/m3p_web/tmp
+      - v_development_node_modules:/m3p_web/node_modules
+    ports:
+      - 3000:3000
+    command: >
+      bash -c 'rm -f tmp/pids/server.pid
+      && bundle exec puma'
+
+
+volumes:
+  v_development_redis:
+  v_development_postgres:
+  v_development_gems:
+  v_development_storage:
+  v_development_tmp:
+  v_development_node_modules:

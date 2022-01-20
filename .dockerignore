@@ -1,0 +1,16 @@
+*.VisualState.xml
+.dockerignore
+.editorconfig
+.env.template
+.git
+.idea
+.idea_modules/
+.overcommit.yml
+.vscode/*
+/public/assets
+/public/packs
+/public/packs-test
+/public/system
+log/*
+Makefile
+node_modules/

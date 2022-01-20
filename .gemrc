@@ -1,0 +1,5 @@
+---
+:update_sources: true
+gem: --no-doc --no-rdoc --no-ri --no-document
+install: --no-rdoc --no-ri --no-doc
+update:  --no-rdoc --no-ri --no-doc
